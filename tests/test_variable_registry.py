@@ -13,6 +13,7 @@ from plothist import (
     remove_variable_registry_parameters,
     update_variable_registry,
     update_variable_registry_binning,
+    update_variable_registry_ranges,
 )
 
 variable_keys = ["variable_0", "variable_1", "variable_2"]
@@ -417,6 +418,31 @@ def test_update_variable_registry_binning_all_keys() -> None:
 
     create_variable_registry(variable_keys, path=registry_path)
     update_variable_registry_binning(dummy_data, variable_keys=None, path=registry_path)
+
+    for key in variable_keys:
+        variable = get_variable_from_registry(key, path=registry_path)
+        assert (
+            pytest.approx(variable["bins"])
+            == len(np.histogram_bin_edges(dummy_data[key], bins="auto")) - 1
+        )
+        assert pytest.approx(variable["range"][0]) == dummy_data[key].min()
+        assert pytest.approx(variable["range"][1]) == dummy_data[key].max()
+
+    os.remove(registry_path)
+
+
+def test_update_variable_registry_ranges_deprecated() -> None:
+    """
+    Test that the deprecated update_variable_registry_ranges warns and updates the binning.
+    """
+    dummy_data = get_dummy_data()
+
+    registry_path = "./_test_variable_registry_ranges_deprecated.yaml"
+
+    create_variable_registry(variable_keys, path=registry_path)
+
+    with pytest.warns(DeprecationWarning, match="update_variable_registry_binning"):
+        update_variable_registry_ranges(dummy_data, variable_keys, path=registry_path)
 
     for key in variable_keys:
         variable = get_variable_from_registry(key, path=registry_path)
