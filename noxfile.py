@@ -15,7 +15,7 @@ import nox
 nox.needs_version = ">=2025.11.12"
 nox.options.default_venv_backend = "uv|venv"
 
-PYTHON_ALL_VERSIONS = ["3.10", "3.14"]
+PYTHON_ALL_VERSIONS = ["3.11", "3.15"]
 
 
 @nox.session(reuse_venv=True, default=True)
@@ -32,9 +32,14 @@ def tests(session: nox.Session) -> None:
     """
     Run the unit and regular tests.
     """
-    pyproject = nox.project.load_toml("pyproject.toml")
-    session.install("-e", ".")
-    session.install(*nox.project.dependency_groups(pyproject, "test"))
+    session.run_install(
+        "uv",
+        "sync",
+        "--locked",
+        "--group=test",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
     session.run("pytest", "--mpl", "-n", "auto", *session.posargs)
 
 
@@ -43,9 +48,14 @@ def generate_examples_figures(session: nox.Session) -> None:
     """
     Generate the example figures. Pass "-- tests/test_examples_*.py" to run only the relevant tests.
     """
-    pyproject = nox.project.load_toml("pyproject.toml")
-    session.install("-e", ".")
-    session.install(*nox.project.dependency_groups(pyproject, "test"))
+    session.run_install(
+        "uv",
+        "sync",
+        "--locked",
+        "--group=test",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
     session.run(
         "pytest",
         "--mpl-generate-path=docs/img",
@@ -59,9 +69,14 @@ def coverage(session: nox.Session) -> None:
     """
     Run the unit tests with coverage. Warning: takes a long time to run.
     """
-    pyproject = nox.project.load_toml("pyproject.toml")
-    session.install("-e", ".")
-    session.install(*nox.project.dependency_groups(pyproject, "test"))
+    session.run_install(
+        "uv",
+        "sync",
+        "--locked",
+        "--group=test",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
     session.run(
         "pytest",
         "--cov=plothist",
