@@ -37,6 +37,7 @@ jobs:
           uv sync --group dev --group test
 
       - name: Run prek
+        if: matrix.python-version == '3.14'
         run: |
           uv run prek run --all-files
 
